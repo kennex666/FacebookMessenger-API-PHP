@@ -5,7 +5,8 @@ namespace KaiserStudio5;
 
 
 class MessageBuilder {
-    const version = "1.0_Beta";
+    const version = '2.0';
+	
     public function __construct() {
 
     }
@@ -37,13 +38,18 @@ class MessageBuilder {
         );
     }
 	
-	public function createButtonForQuickReply($text, $payload) {
+    /* Deprecated but supporting for new version , it'll work without buggy or nope Idk :))*/
+	public function createButtonQRTemplate($text, $payload) {
+        return $this->createQuickReplyButton('text', $text, $payload, null);
+    }
+
+    public function createQuickReplyButton($type, $title, $payload, $imageUrl){
         return (object) array(
-			"content_type" => "text",
-			"title" => $text,
-			"payload" => $payload,
-			"image_url" => null
-		);
+            "content_type" => $type,
+            "title" => $title,
+            "payload" => $payload,
+            "image_url" => $imageUrl
+        );
     }
 
     public function createQuickReplyTemplate($text, $buttons) {
@@ -66,21 +72,7 @@ class MessageBuilder {
         );
     }
 
-    public function createListTemplate($elements, $topElementStyle, $buttons = []) {
-        if (!is_array($buttons)) $buttons = [$buttons];
-        if (!is_array($elements)) $elements = [$elements];
-        return (object) array(
-            "attachment" => array(
-                "type" => "template",
-                "payload" => array(
-                    "template_type" => "list",
-                    "top_element_style" => "$topElementStyle", // LARGE | COMPACT
-                    "elements" => $elements,
-                    "buttons" => $buttons
-                )
-            )
-        );
-    }
+    // Removed createListTemplate() function because it's deprecated by Facebook
 
     public function createAttachmentElement($attachmentType, $attachmentId, $buttons = []) {
         if (!is_array($buttons)) $buttons = [$buttons];
@@ -91,14 +83,49 @@ class MessageBuilder {
         );
     }
 
-    public function createTemplateElement($title, $subtitle, $defaultAction = '', $buttons = [], $imageUrl = '') {
-        if (!is_array($buttons)) $buttons = [$buttons];
-        return (object) array(
+    /* Update without button, just let $buttons = null or empty */
+    public function createTemplateElement($title, $subtitle, $defaultAction = '', $buttons = null, $imageUrl = '') {
+        if (!is_array($buttons) && !empty($buttons)) $buttons = [$buttons];
+        $obj = array(
             "title" => $title,
             "subtitle" => $subtitle,
             "image_url" => $imageUrl,
             "default_action" => $defaultAction,
-            "buttons" => $buttons
+        );
+        if (!empty($buttons)) $obj["buttons"] = $buttons;
+        return (object) $obj;
+    }
+
+    //Deprecated but supported for new version (Can use without bug)
+    public function createTemplateElementNoButton($title, $subtitle, $defaultAction = '', $imageUrl = '') {
+        return $this->createTemplateElement($title, $subtitle, $defaultAction, '' ,$imageUrl);
+    }
+
+    public function createGenericTemplateQR($elements, $buttons) {
+        if (!is_array($elements)) $elements = [$elements];
+        return (object) array(
+            "attachment" => array(
+                "type" => "template",
+                "payload" => array(
+                    "template_type" => "generic",
+                    "elements" => $elements
+                )
+            ),
+            'quick_replies' => $buttons
+        );
+    }
+    
+    public function createListTemplateQR($elements, $topElementStyle, $buttons = []) {
+        if (!is_array($buttons)) $buttons = [$buttons];
+        if (!is_array($elements)) $elements = [$elements];
+        return (object) array(
+            "attachment" => array(
+                "type" => "template",
+                "payload" => array(
+                    "template_type" => "list",
+                    "top_element_style" => "$topElementStyle", // LARGE | COMPACT
+                    "elements" => $elements
+                ))
         );
     }
 
@@ -125,13 +152,24 @@ class MessageBuilder {
             "text" => $text
         );
     }
-	// New Addon
+
     public function createUploadFile($type, $attachments) {
         return (object) array(
             "attachment" => array(
                 "type" => $type,
                 "payload" => array(
                     "url" => $attachments
+                )
+            )
+        );
+    }
+	
+    public function createUploadFileID($type, $attachments) {
+        return (object) array(
+            "attachment" => array(
+                "type" => $type,
+                "payload" => array(
+                    "attachment_id" => $attachments
                 )
             )
         );
